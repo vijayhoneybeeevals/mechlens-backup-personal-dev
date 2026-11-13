@@ -31,6 +31,33 @@ TransformerBridge wraps a HuggingFace model behind a consistent TransformerLens 
 
 The bridge currently covers 50+ architectures spanning Llama, Mistral, Qwen, Gemma, OLMo, Phi, Mamba, LLaVA, and more. For the full list — including which models have been verified end-to-end — see the [TransformerBridge Models](../generated/transformer_bridge_models.md) page.
 
+## Gemma 3 guidance
+
+Gemma 3 support currently uses the `HookedTransformer` compatibility loader rather than
+`TransformerBridge`. Use the full Hugging Face model ID, set `HF_TOKEN` after accepting
+Google's Hub agreement, and install from a source checkout with `uv sync` so the project's
+multimodal dependencies are present.
+
+```python
+from transformer_lens import HookedTransformer
+
+model = HookedTransformer.from_pretrained(
+    "google/gemma-3-1b-it",
+    device="cpu",
+)
+```
+
+The text-only `270M` and `1B` Gemma 3 variants are supported as language models. The
+`4B`, `12B`, and `27B` variants can also be loaded for **text-backbone** analysis; their
+vision tower and image inputs are not exposed or executed by TransformerLens. Do not use this
+path for image-conditioned inference or vision hooks. Both base and instruction-tuned variants
+listed in the [HookedTransformer model table](../generated/model_properties_table.md) are
+registered.
+
+For new work on other model families, prefer `TransformerBridge` as described above. Use the
+Gemma 3 compatibility path until an end-to-end Gemma 3 bridge workflow is documented and
+verified.
+
 ## Advice for Reading the Code
 
 The bridge is organized around a small set of generalized components wired together by an architecture adapter, which keeps the model code much easier to navigate than the older unified implementation. For a tour of the bridge's canonical hook names, the component layout, and the expected tensor shapes at each hook point, see the [Model Structure](model_structure.md) page. A small alias layer preserves the older TransformerLens hook names (e.g. `blocks.{i}.hook_resid_pre`) so legacy notebooks keep working — but new code should prefer the canonical names.
